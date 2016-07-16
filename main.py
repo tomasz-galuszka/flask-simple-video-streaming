@@ -1,7 +1,8 @@
 from time import sleep
 
 from flask import Flask, render_template, Response
-from lib.camera import Camera
+
+from lib.camera import Camera, LaptopCamera
 
 app = Flask(__name__)
 
@@ -21,10 +22,17 @@ def generate_stock_table():
 
 def stream_video(camera):
     while True:
-        sleep(5)
+        sleep(1)
         frame = camera.get_frame()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+@app.route('/video-camera')
+def video_camera():
+    camera = LaptopCamera()
+    mime_type = 'multipart/x-mixed-replace; boundary=frame'
+    return Response(stream_video(camera), mimetype=mime_type)
 
 
 @app.route('/video-feed')
@@ -40,4 +48,4 @@ def stock_table():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
+    app.run(debug=True, threaded=True, port=4000)
